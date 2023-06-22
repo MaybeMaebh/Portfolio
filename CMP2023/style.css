@@ -107,6 +107,13 @@
      width:700px;
      height:auto;
 }
+
+.main-content-full {
+     border:1px solid var(--dkest-color);
+     width:1000px;
+     height:auto;
+}
+
  p {
      padding:5px;
 }
