@@ -1,0 +1,132 @@
+/* CSS is how you can add style to your website, such as colors, fonts, and positioning of your
+   HTML content. To learn how to do something, just try searching Google for questions like
+   "how to change link color." */
+
+   :root {
+    --dk-color:#621882;
+    --mid-color:#133DC9;
+    --lt-color:#0BC4CF;
+    --lt-contrast-color:#5fff82;
+    --lt-img:url(https://rivendell.neocities.org/backgrounds/abstract1.jpg);
+    --dkest-color:#0A172D;
+    --dk-img:url(https://rivendell.neocities.org/backgrounds/bluenoise.gif);
+    --accent:#F000DB;
+    --right-text:10px;
+    --box-width:20ch;
+    --box-height:5ch;
+    font-family: 'Courier New', monospace;
+
+}
+
+body {
+ /*background-color: var(--lt-color);*/
+ font-family: 'Courier New', monospace;
+ margin:0;
+ background-color:var(--lt-color);
+ background-image:var(--lt-img);
+}
+
+h1 {
+font-size:200%;
+margin: 0;
+text-indent: 0ch;
+}
+h2 {
+    font-size: 100%;
+}
+
+p {
+ margin: 0;
+ text-indent: 0ch;
+}
+
+.container {
+    margin:0;
+    height:auto;
+
+    color: black;
+    margin-top:15px;
+}
+
+.expandedForm {
+
+}
+
+.fileList {
+  display: grid;
+  width:auto;
+  grid-auto-flow: row dense;
+  grid-template-columns: repeat(auto-fill, min(var(--box-width),100%));
+  /*grid-auto-columns: var(--box-width);*/
+  gap: 1ch;
+  padding: 1ch;
+  grid-auto-rows:var(--box-height);
+  color: white;
+  background-color:var(--dkest-color);
+  background-image:var(--dk-img);
+}
+.fileList > div {
+ background-color:var(--lt-color);
+ background-image:var(--lt-img);
+ color: white; 
+}
+.fileList > div > img {
+ object-fit: cover;
+ width: 100%;
+ height: 100%;
+}
+.fileList > div > p {
+ position: absolute;
+ color:white;
+}
+.fileList > div> a {
+ width: 100%;
+ height: 100%;
+ display: inline-block;
+ position: relative;
+ top: -110%;
+}
+
+#doubleBox {
+ grid-template-columns: repeat(auto-fill, min(83ch,100%));
+  /*grid-auto-columns: var(--box-width);*/
+  grid-auto-rows:21ch;
+}
+
+#container {
+    color: white;
+    max-width:900px;
+    margin:0 auto;
+    height:auto;
+    background-color:var(--dk-color);
+    background-image:var(--dk-img);
+    margin-top:15px;
+}
+
+#container > div {
+    margin:0;
+    border:1px solid white;
+    overflow:auto;
+}
+#container > div > h1{
+    text-align: center;
+    margin: 0.5ch 1ch;
+}
+#container > div > h2{
+    text-align: center;
+    margin: 0.5ch 1ch;
+}
+#container > div > p{
+    text-align: left;
+    margin: 0.5ch 1ch;
+    color: var(--lt-contrast-color);
+}
+#container > div > ul{
+    text-align: left;
+    margin: 0.5ch 1ch;
+    color: var(--lt-contrast-color);
+}
+#container > div > img{
+    margin: 0;
+    float:left ;
+}
