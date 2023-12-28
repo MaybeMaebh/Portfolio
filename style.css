@@ -74,6 +74,7 @@ p {
   color: white;
   background-color:var(--dkest-color);
   background-image:var(--dk-img);
+  max-width: 83ch;
 }
 .fileList > div {
  background-color:var(--lt-color);
@@ -102,6 +103,15 @@ p {
   /*grid-auto-columns: var(--box-width);*/
   grid-auto-rows:21ch;
 }
+#Icons {
+    grid-template-columns: repeat(auto-fill, min(6ch,100%));
+     /*grid-auto-columns: var(--box-width);*/
+     grid-auto-rows:6ch;
+}
+#Icons > div {
+    background-color:var(--dk-color);
+    background-image:var(--dk-img);
+   }
 
 #container {
     color: white;
