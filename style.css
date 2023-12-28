@@ -14,9 +14,18 @@
     --right-text:10px;
     --box-width:20ch;
     --box-height:5ch;
+    font-size: 200%;
+    
     font-family: 'Courier New', monospace;
 
 }
+
+a {
+    color: var(--accent);
+  }
+  a:visited {
+    color: var(--lt-contrast-color);
+  }
 
 body {
  /*background-color: var(--lt-color);*/
@@ -36,6 +45,7 @@ h2 {
 }
 
 p {
+ font-size: 100%;
  margin: 0;
  text-indent: 0ch;
 }
@@ -77,7 +87,7 @@ p {
 }
 .fileList > div > p {
  position: absolute;
- color:white;
+ color:rgb(121, 255, 88);
 }
 .fileList > div> a {
  width: 100%;
@@ -88,14 +98,14 @@ p {
 }
 
 #doubleBox {
- grid-template-columns: repeat(auto-fill, min(83ch,100%));
+ grid-template-columns: repeat(auto-fill, min(41ch,100%));
   /*grid-auto-columns: var(--box-width);*/
   grid-auto-rows:21ch;
 }
 
 #container {
     color: white;
-    max-width:900px;
+    max-width:80ch;
     margin:0 auto;
     height:auto;
     background-color:var(--dk-color);
