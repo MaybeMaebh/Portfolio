@@ -2,6 +2,7 @@
   <title>MaybeMaebh:FMP:Style</title>
   <link rel="icon" type="image/png" sizes="32x32" href="../../Favicon32x32.png"/>
   <link href="../../style.css" rel="stylesheet" type="text/css" media="all">
+  <meta charset="UTF-8">
 </head>
 
 <body>
@@ -18,7 +19,7 @@
       <p>An example of solarpunk design. Photo credit  Dustin Jacobus</p>
     </div>
 
-    <div>
+    <div id="Research">
       <h2>Recearch</h2>
       <img src="Posted by uRojom.webp" width="33.3%">
       <img src="Stable Diffusion.jpg" width="33.3%">
@@ -39,5 +40,379 @@
       <img src="dillongoo - The Last Bakery (animation) - Genshin Impact x DillonGoo - HoyoFair 2024 [YF0dFnY9K5w - 2560x1440 - 5m18s].png" width="50%">
       <img src="dillongoo - The Last Bakery (animation) - Genshin Impact x DillonGoo - HoyoFair 2024 [YF0dFnY9K5w - 2560x1440 - 8m26s].png" width="50%">
       <p>Though there style doesn't match and it is non interactable,the techniques are useful for my style and avalible open-source for reference.</p>
+    </div>
 
+    <div id="Planning">
+      <h2>Planning</h2>
+      <img src="Planning.png" width="100%">
+      <p>Initial experimentation</p>
+    </div>
+    <div>
+      <img src="Screenshot from 2024-02-07 09-22-36.png" width="33.3%">
+      <img src="Screenshot from 2024-03-26 09-29-26.png" width="33.3%">
+      <img src="Screenshot from 2024-03-26 11-54-41.png" width="33.3%">
+      <img src="Screenshot from 2024-03-26 10-38-25.png" width="50%">
+      <img src="Screenshot from 2024-03-28 19-03-23.png" width="50%">
+      <p>I started with a simple tst scen of a couple cubes and fixed directional light to learn the basics of Web GPU Shader Language(WGSL), the language used to program performant grathics in my framework, this is also very transferable to GLSL and HLSL which are heavily used in industry. Using directly programed shaders also allows for better performance and support on low end devices, one of my key goals.</p>
+      <p>After getting the basics working I started to work on a distinct stylised shading style taking informal feedback from my classmates and friends online, though this may have bias towards the tastes of artisticlly inclind people, which may be infact desirable as it intends to be a game allowing artistic expression!</p>
+      <p><blockquote><code>
+        #import bevy_shader_utils::perlin_noise_3d::perlin_noise_3d<br>
+#import bevy_shader_utils::voronoise::voronoise<br>
+<br>
+<br>
+#import bevy_pbr::{<br>
+ pbr_fragment::pbr_input_from_standard_material,<br>
+ pbr_functions::alpha_discard,<br>
+ mesh_view_bindings::view,<br>
+ utils::coords_to_viewport_uv,<br>
+ mesh_view_bindings::globals,<br>
+ forward_io::{VertexOutput, FragmentOutput},<br>
+ pbr_functions::{apply_pbr_lighting, main_pass_post_lighting_processing,},<br>
+}<br>
+<br>
+struct MyExtendedMaterial {<br>
+ quantize_steps: u32,<br>
+}<br>
+<br>
+// On generating random numbers, with help of y= [(a+x)sin(bx)] mod 1&quot;, W.J.J. Rey, 22nd European Meeting of Statisticians 1998<br>
+fn rand11(n: f32) -> f32 { return fract(sin(n) * 43758.5453123); }<br>
+fn rand22(n: vec2f) -> f32 { return fract(sin(dot(n, vec2f(12.9898, 4.1414))) * 43758.5453); }<br>
+// WTFPL License<br>
+fn noise(p: f32) -> f32 {<br>
+ let fl = floor(p);<br>
+ return mix(mix(rand11(fl), rand11(fl + 1.), fract(p)/2+.5),rand11(fl+2.),fract(p)/2);<br>
+}<br>
+<br>
+@group(2) @binding(100)<br>
+var<uniform> my_extended_material: MyExtendedMaterial;<br>
+<br>
+<br>
+<br>
+@fragment<br>
+fn fragment(<br>
+ in: VertexOutput,<br>
+ @builtin(front_facing) is_front: bool,<br>
+) -> FragmentOutput {<br>
+ // generate a PbrInput struct from the StandardMaterial bindings<br>
+ var pbr_input = pbr_input_from_standard_material(in, is_front);<br>
+<br>
+ // we can optionally modify the input before lighting and alpha_discard is applied<br>
+ pbr_input.material.base_color.b = pbr_input.material.base_color.r;<br>
+<br>
+ // alpha discard<br>
+ pbr_input.material.base_color = alpha_discard(pbr_input.material, pbr_input.material.base_color);<br>
+<br>
+<br>
+ var out: FragmentOutput;<br>
+ // apply lighting<br>
+ out.color = apply_pbr_lighting(pbr_input);<br>
+<br>
+ // we can optionally modify the lit color before post-processing is applied<br>
+ var quantisedcolor:vec4<f32> = vec4<f32>(vec4<u32>(out.color * f32(my_extended_material.quantize_steps))) / f32(my_extended_material.quantize_steps);<br>
+ <br>
+ var screenspaceQuards = coords_to_viewport_uv(in.position.xy, view.viewport);<br>
+<br>
+ let speedadjustedtime = 0.1*globals.time;<br>
+ let rotationshift = vec2f(noise(speedadjustedtime),noise(speedadjustedtime+1000.0f));<br>
+ var rotation:f32 = voronoise(vec2f(screenspaceQuards.x, screenspaceQuards.y)*2.0+rotationshift,0.0,1.0);//need to add some sort of seed randomness maybe, also scale with zoom probabley<br>
+ var ditherNoise:f32 = clamp(perlin_noise_3d(vec3<f32>(screenspaceQuards.x*rotation*50.0-(screenspaceQuards.y)*(1-rotation), (screenspaceQuards.y)*(1-rotation)*500.0-screenspaceQuards.x*rotation,speedadjustedtime)),0.0,1.0);<br>
+ var differenceFromQuant:vec4f = vec4f(vec4u(((vec4<f32>(out.color) - vec4<f32>(quantisedcolor))*1.5)*f32(my_extended_material.quantize_steps)*4.0))/4.0;//heighlights<br>
+<br>
+ //options be monochrome vs binary RGB and absolute vs relitive also positive and negative<br>
+ if (true) {<br>
+ out.color = quantisedcolor + vec4f(vec4f(differenceFromQuant)*f32(ditherNoise))/f32(my_extended_material.quantize_steps);<br>
+ }<br>
+ else {<br>
+ out.color = quantisedcolor + vec4f(vec4u(differenceFromQuant*ditherNoise*4.0));<br>
+ }<br>
+<br>
+ //out.color = quantisedcolor + ((vec4<f32>(quantisedcolor) - vec4<f32>(vec4<f32>(vec4<f32>(out.color) - vec4<f32>(quantisedcolor)))* f32(my_extended_material.quantize_steps) * ditherNoise)*f32(-1/f32(my_extended_material.quantize_steps)));<br>
+ //out.color = vec4f(screenspaceQuards.x,screenspaceQuards.y,1.0,1.0);<br>
+ //out.color.a = 0.0;<br>
+ // apply in-shader post processing (fog, alpha-premultiply, and also tonemapping, debanding if the camera is non-hdr)<br>
+ // note this does not include fullscreen postprocessing effects like bloom.<br>
+ out.color = main_pass_post_lighting_processing(pbr_input, out.color);<br>
+ // we can optionally modify the final result here<br>
+ //out.color = out.color * 2.0;<br>
+<br>
+ return out;<br>
+}
+        </code></blockquote></p>
+    </div>
+
+    <div id="Implemtation">
+      <h2>Implemtation</h2>
+      <img src="Implemtation.png" width="100%">
+      <p>Establising a style in context that works for the Demo</p>
+    </div>
+    <div>
+      <img src="Screenshot from 2024-04-22 14-37-12.png" width="41%">
+      <img src="Screenshot from 2024-06-03 11-03-24.png" width="59%">
+      <p>First I got the technical details of a unique face shading system working which I see as essential to creating a style the seems intentional and clean, in a way that makes it feel less human, rather than the retro or low-res look of vertex colouring, and more performant than UV mapping and textures though I expored how I would scale that for low LOD which would be needed for it to become a game supporting whole cities.</p>
+      <p>Crucially this system refrenced colours in pallets, having a shared texture of 128 dynamically adjustable pallets and allowing each instance of a pannel or building to pick a pallet, allowing players freedom in making diverse cities!</p>
+      <p>For my demo though and defualts in a full game I whould need pick a set of cohisive pallets. When I first implimented it I just scaled the pallet codes to grayscale:</p>
+      <blockquote><code>00:0000:wall<br>
+        01:0001:wall_accent<br>
+        02:0010:sil<br>
+        03:0011:frame<br>
+        04:0100:wood<br>
+        05:0101:metal<br>
+        06:0110:door<br>
+        07:0111:window<br>
+        08:1000:motor<br>
+        09:1001:Pavement<br>
+        15:1111:Transparent</code></blockquote>
+      <p>I felt this showed the details supprisingly well for what was really just a debug view to check the shader worked; Thouh, for now as 'better' stopgap I used bold built-in colours roughly matching the natruallistic colours most common in the UK which this set of assets are mainly based on, with a few bold colours for details to give it some texture and intionallity (shown on the right).</p>
+      <img src="Screenshot from 2024-06-03 12-05-47.png" width="100%">
+      <p>for the demo I wanted to showcase the variety of colours in the pallet system and the bright solorpunk vibe so I went back to those grayscale cales but map that onto the upper part of lightness and saturation in the HSL colorspace with 6 pallets with equaly spaced hues, making a very biright and cohisive set colors that still showed textural detail of the pannels while having as bold possible display of the differences in pallets.</p>
+      <p>I then applied the shadding I had worked on for the final result.</p>
+      <blockquote><code>
+        #import bevy_shader_utils::perlin_noise_3d::perlin_noise_3d<br>
+#import bevy_shader_utils::voronoise::voronoise<br>
+<br>
+<br>
+#import bevy_pbr::{<br>
+ pbr_fragment::pbr_input_from_standard_material,<br>
+ pbr_functions::alpha_discard,<br>
+ mesh_view_bindings::view,<br>
+ utils::coords_to_viewport_uv,<br>
+ mesh_view_bindings::globals,<br>
+ forward_io::{FragmentOutput, VertexOutput},<br>
+ pbr_functions::{apply_pbr_lighting, main_pass_post_lighting_processing,},<br>
+}<br>
+<br>
+#import bevy_pbr::{ //based off mesh.wgsl<br>
+ mesh_functions,<br>
+ skinning,<br>
+ morph::morph,<br>
+ view_transformations::position_world_to_clip,<br>
+}<br>
+<br>
+struct VertexOutputPlus {<br>
+ // This is &#96;clip position&#96; when the struct is used as a vertex stage output<br>
+ // and &#96;frag coord&#96; when used as a fragment stage input<br>
+ @builtin(position) position: vec4<f32>,<br>
+ @location(0) world_position: vec4<f32>,<br>
+ @location(1) world_normal: vec3<f32>,<br>
+#ifdef VERTEX_UVS<br>
+ @location(2) uv: vec2<f32>,<br>
+#endif<br>
+#ifdef VERTEX_UVS_B<br>
+ @location(3) uv_b: vec2<f32>,<br>
+#endif<br>
+#ifdef VERTEX_TANGENTS<br>
+ @location(4) world_tangent: vec4<f32>,<br>
+#endif<br>
+#ifdef VERTEX_COLORS<br>
+ @location(5) color: vec4<f32>,<br>
+#endif<br>
+#ifdef VERTEX_OUTPUT_INSTANCE_INDEX<br>
+ @location(6) @interpolate(flat) instance_index: u32,<br>
+#endif<br>
+ @location(7) vertex_index: u32<br>
+}<br>
+<br>
+struct Vertex {<br>
+ @builtin(instance_index) instance_index: u32,<br>
+#ifdef VERTEX_POSITIONS<br>
+ @location(0) position: vec3<f32>,<br>
+#endif<br>
+#ifdef VERTEX_NORMALS<br>
+ @location(1) normal: vec3<f32>,<br>
+#endif<br>
+#ifdef VERTEX_UVS<br>
+ @location(2) uv: vec2<f32>,<br>
+#endif<br>
+#ifdef VERTEX_UVS_B<br>
+ @location(3) uv_b: vec2<f32>,<br>
+#endif<br>
+#ifdef VERTEX_TANGENTS<br>
+ @location(4) tangent: vec4<f32>,<br>
+#endif<br>
+#ifdef VERTEX_COLORS<br>
+ @location(5) color: vec4<f32>,<br>
+#endif<br>
+#ifdef SKINNED<br>
+ @location(6) joint_indices: vec4<u32>,<br>
+ @location(7) joint_weights: vec4<f32>,<br>
+#endif<br>
+<br>
+@builtin(vertex_index) index: u32,<br>
+<br>
+};<br>
+<br>
+<br>
+// On generating random numbers, with help of y= [(a+x)sin(bx)] mod 1&quot;, W.J.J. Rey, 22nd European Meeting of Statisticians 1998<br>
+fn rand11(n: f32) -> f32 { return fract(sin(n) * 43758.5453123); }<br>
+fn rand22(n: vec2f) -> f32 { return fract(sin(dot(n, vec2f(12.9898, 4.1414))) * 43758.5453); }<br>
+// WTFPL License<br>
+fn noise(p: f32) -> f32 {<br>
+ let fl = floor(p);<br>
+ return mix(mix(rand11(fl), rand11(fl + 1.), fract(p)/2+.5),rand11(fl+2.),fract(p)/2);<br>
+}<br>
+<br>
+<br>
+<br>
+@vertex<br>
+fn vertex(vertex_no_morph: Vertex) -> VertexOutputPlus {<br>
+ var out: VertexOutputPlus;<br>
+ out.vertex_index = vertex_no_morph.index;<br>
+<br>
+#ifdef MORPH_TARGETS<br>
+ var vertex = morph_vertex(vertex_no_morph);<br>
+#else<br>
+ var vertex = vertex_no_morph;<br>
+#endif<br>
+<br>
+#ifdef SKINNED<br>
+ var model = skinning::skin_model(vertex.joint_indices, vertex.joint_weights);<br>
+#else<br>
+ // Use vertex_no_morph.instance_index instead of vertex.instance_index to work around a wgpu dx12 bug.<br>
+ // See https://github.com/gfx-rs/naga/issues/2416 .<br>
+ var model = mesh_functions::get_model_matrix(vertex_no_morph.instance_index);<br>
+#endif<br>
+<br>
+#ifdef VERTEX_NORMALS<br>
+#ifdef SKINNED<br>
+ out.world_normal = skinning::skin_normals(model, vertex.normal);<br>
+#else<br>
+ out.world_normal = mesh_functions::mesh_normal_local_to_world(<br>
+ vertex.normal,<br>
+ // Use vertex_no_morph.instance_index instead of vertex.instance_index to work around a wgpu dx12 bug.<br>
+ // See https://github.com/gfx-rs/naga/issues/2416<br>
+ vertex_no_morph.instance_index<br>
+ );<br>
+#endif<br>
+#endif<br>
+<br>
+#ifdef VERTEX_POSITIONS<br>
+ out.world_position = mesh_functions::mesh_position_local_to_world(model, vec4<f32>(vertex.position, 1.0));<br>
+ out.position = position_world_to_clip(out.world_position.xyz);<br>
+#endif<br>
+<br>
+#ifdef VERTEX_UVS<br>
+ out.uv = vertex.uv;<br>
+#endif<br>
+<br>
+#ifdef VERTEX_UVS_B<br>
+ out.uv_b = vertex.uv_b;<br>
+#endif<br>
+<br>
+#ifdef VERTEX_TANGENTS<br>
+ out.world_tangent = mesh_functions::mesh_tangent_local_to_world(<br>
+ model,<br>
+ vertex.tangent,<br>
+ // Use vertex_no_morph.instance_index instead of vertex.instance_index to work around a wgpu dx12 bug.<br>
+ // See https://github.com/gfx-rs/naga/issues/2416<br>
+ vertex_no_morph.instance_index<br>
+ );<br>
+#endif<br>
+<br>
+#ifdef VERTEX_COLORS<br>
+ out.color = vertex.color;<br>
+#endif<br>
+<br>
+#ifdef VERTEX_OUTPUT_INSTANCE_INDEX<br>
+ // Use vertex_no_morph.instance_index instead of vertex.instance_index to work around a wgpu dx12 bug.<br>
+ // See https://github.com/gfx-rs/naga/issues/2416<br>
+ out.instance_index = vertex_no_morph.instance_index;<br>
+#endif<br>
+<br>
+ return out;<br>
+}<br>
+<br>
+@group(2) @binding(100)<br>
+var<uniform> quantize_steps: u32;<br>
+@group(2) @binding(101)<br>
+var face_map: texture_storage_1d<r8uint, read>;<br>
+@group(2) @binding(102)<br>
+var<uniform> palletindex: u32;<br>
+@group(2) @binding(103)<br>
+var pallet_texture: texture_storage_2d<rgba8unorm, read>;<br>
+<br>
+@fragment<br>
+fn fragment(<br>
+ inplus: VertexOutputPlus,<br>
+ @builtin(front_facing) is_front: bool,<br>
+) -> FragmentOutput {<br>
+ var in:VertexOutput;<br>
+ in = VertexOutput(<br>
+ inplus.position,<br>
+ inplus.world_position,<br>
+ inplus.world_normal,<br>
+ #ifdef VERTEX_UVS<br>
+ inplus.uv,<br>
+ #endif<br>
+ #ifdef VERTEX_UVS_B<br>
+ inplus.uv_b,<br>
+ #endif<br>
+ #ifdef VERTEX_TANGENTS<br>
+ inplus.world_tangent,<br>
+ #endif<br>
+ #ifdef VERTEX_COLORS<br>
+ inplus.color,<br>
+ #endif<br>
+ #ifdef VERTEX_OUTPUT_INSTANCE_INDEX<br>
+ inplus.instance_index,<br>
+ #endif<br>
+ );<br>
+<br>
+ // generate a PbrInput struct from the StandardMaterial bindings<br>
+ var pbr_input = pbr_input_from_standard_material(in, is_front);<br>
+ <br>
+ var palletmaterialnum:u32;<br>
+ palletmaterialnum = textureLoad(face_map,inplus.vertex_index/3)[0];//maybe this should be in vertex?<br>
+ // we can optionally modify the input before lighting and alpha_discard is applied<br>
+ //pbr_input.material.base_color = vec4f(f32(palletmaterialnum)/16,f32(palletmaterialnum)/16,f32(palletmaterialnum)/16,1.0);<br>
+ pbr_input.material.base_color = textureLoad(pallet_texture,vec2u(palletmaterialnum, palletindex));<br>
+<br>
+ // alpha discard<br>
+ pbr_input.material.base_color = alpha_discard(pbr_input.material, pbr_input.material.base_color);<br>
+<br>
+<br>
+ var out: FragmentOutput;<br>
+ // apply lighting<br>
+ out.color = apply_pbr_lighting(pbr_input);<br>
+<br>
+ // we can optionally modify the lit color before post-processing is applied<br>
+ var quantisedcolor:vec4<f32> = vec4<f32>(vec4<u32>(out.color * f32(quantize_steps))) / f32(quantize_steps);<br>
+ <br>
+ var screenspaceQuards = coords_to_viewport_uv(in.position.xy, view.viewport);<br>
+<br>
+ let speedadjustedtime = 0.1*globals.time+f32(palletindex)*100.0;<br>
+ let rotationshift = vec2f(noise(speedadjustedtime),noise(speedadjustedtime+1000.0f));<br>
+ var rotation:f32 = voronoise(vec2f(screenspaceQuards.x, screenspaceQuards.y)*2.0+rotationshift,0.0,1.0);//need to add some sort of seed randomness maybe, also scale with zoom probabley<br>
+ var ditherNoise:f32 = clamp(perlin_noise_3d(vec3<f32>(screenspaceQuards.x*rotation*500.0-(screenspaceQuards.y)*(1-rotation), (screenspaceQuards.y)*(1-rotation)*1000.0-screenspaceQuards.x*rotation,speedadjustedtime)),0.0,1.0);<br>
+ var differenceFromQuant:vec4f = vec4f(vec4u(((vec4<f32>(out.color) - vec4<f32>(quantisedcolor))*1.5)*f32(quantize_steps)*4.0))/4.0;//heighlights<br>
+ <br>
+ //options be monochrome vs binary RGB and absolute vs relitive also positive and negative<br>
+ out.color = quantisedcolor; //+ vec4f(vec4f(differenceFromQuant)*f32(ditherNoise))/f32(quantize_steps);<br>
+<br>
+<br>
+ //out.color = quantisedcolor + (vec4f(vec4f(differenceFromQuant)*f32(ditherNoise)))/(f32(quantize_steps)*10.0);<br>
+<br>
+ //out.color = quantisedcolor + ((vec4<f32>(quantisedcolor) - vec4<f32>(vec4<f32>(vec4<f32>(out.color) - vec4<f32>(quantisedcolor)))* f32(quantize_steps) * ditherNoise)*f32(-1/f32(quantize_steps)));<br>
+ //out.color = vec4f(screenspaceQuards.x,screenspaceQuards.y,1.0,1.0);<br>
+ //out.color.a = 0.0;<br>
+ // apply in-shader post processing (fog, alpha-premultiply, and also tonemapping, debanding if the camera is non-hdr)<br>
+ // note this does not include fullscreen postprocessing effects like bloom.<br>
+ out.color = main_pass_post_lighting_processing(pbr_input, out.color);<br>
+ // we can optionally modify the final result here<br>
+ //out.color = out.color * 2.0;<br>
+<br>
+ return out;<br>
+}
+      </code></blockquote>
+    </div>
+
+    <div id="Evaluation">
+      <h2>Evaluation</h2>
+      <img src="Implemtation.png" width="100%">
+      <p>Though I'm happy with the shadding I ended up, it feels somewhat unprofeshional in it's occasional jumps, though without those jumps I do feel it adds a unique style aggainst the paintbrush detail textures normally used. I also didn't get to impliment any linework which I feel would added a lot more text and macro detail. If had the UI I feel it would of added some contrast necercerry with flat section aggenst the high frequency modeled details.</p>
+      <p>I also feel I could have better gotten more recorded, statistical feedback on it. My falure to make communicatable MVP grathics demos made this difficualt which in turn I think was caused by  me being stressed and rushed to get a full grathics demo of all components in a cycle of burnout and shoddy code.</p>
+    </div>
+
+    <div>
+      <a href="../../"><p>⬑index</p></a>
+      <a href="../"><p> ⬑FMP</p></a>
     </div>

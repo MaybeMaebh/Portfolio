@@ -1,0 +1,77 @@
+<head>
+  <title>MaybeMaebh:FMP:Terrain and Roads</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../Favicon32x32.png"/>
+  <link href="../../style.css" rel="stylesheet" type="text/css" media="all">
+  <meta charset="UTF-8">
+</head>
+
+<body>
+  <div id="container">
+    <div>
+      <a href="../../"><p>⬑index</p></a>
+      <a href="../"><p> ⬑FMP</p></a>
+    </div>
+
+    <div>
+      <h1>Terrain and Roads</h1>
+      <h2>A system for organic and geometric roads to be easilly created on real world terrain</h2>
+    </div>
+
+    <div id="Implimentation">
+      <h2>Implimentation</h2>
+      <img src="Implimentation.png" width="100%">
+    </div>
+
+    <div>
+      <h2>Terrain</h2>
+      <p>I first tried to implimentation for terrain by reimplimenting this solution described in and document in this blog post but found this to be a waste of time as I hadn't yet strong enough fundimental understanding of the framework and so whould encounter problems I didn't understand and could not gain understanding propperly through folling it. (below)</p>
+      <a href="http://clynamen.github.io/blog/2021/01/04/terrain_generation_bevy/"><p>clynamen.github.io</p></a>
+        <img src="bevy_terrain4.png" width="49%">
+        <img src="bevy_terrain5.png" width="51%">
+      <p>I deced that I for a full scale version whould want to look into non-grid based terrain optimizaation and for the demo I whould build an unoptimised terrain that could be built off.</p>
+      <img src="Screenshot from 2024-04-21 16-33-57.png" width="50%">
+      <img src="Screenshot from 2024-04-21 17-15-17.png" width="50%">
+      <p>After getting the normal problems sorted out on a flat plain(left), I added hightmap processing from image files, starting with a simple gradient.from this I could confirm that using standard photoagriphic image formats whould not give enough precission, giving a wibbly look, for demo perposes I used 16-bit intiger png but for distrobuting large hightmaps with a game in a accessable size I would use the little known format of JPEG2000 as it would allow me to trade a slight loss in precission for a tiny proportion of the file size. Another solution for this would be to do additional sampling but for demo purposes it's usefull to have minimal processing between hightmap and terrain mesh allowing mroe artistic control.</p>
+      <img src="Screenshot from 2024-04-21 17-15-17.png" width="60%">
+      <p>I could test the sistems limits clearly by using a simply painted shape first</p>
+      <img src="Screenshot from 2024-04-23 13-30-38.png" width="60%">
+      <p>I then got some terrain data off DEFRA's website for an area I have epxerience with and a variety of terrain fetures</p>
+      <img src="Screenshot from 2024-04-23 13-30-25.png" width="50%">
+      <img src="Screenshot from 2024-04-23 13-44-34.png" width="50%">
+      <p>I then got the section I needed and carfully controlled the levels so it's terrain was just a little exagerated and fitted within the bound of I picked of my terrain system.</p>
+      <img src="Screenshot from 2024-04-24 09-50-53.png" width="50%">
+      <img src="Screenshot from 2024-04-24 10-01-05.png" width="50%">
+      <p>I then had to carefull minimnes the human impacts on the heightmep so that then the human elements could be built in game rather than becoming strange rounded long hills, perticually dual carridgways and railways, but also the high frequency noise of buildings, while preserving waterways.</p>
+      <img src="image.png" width="70%">
+      <p>This left me with this final hightmap. keeping the genral gradients of the real world, and distinctive waterways making it reconisable, while effecticly being a blank slate to build on.</p>
+    </div>
+    <div>
+      <h2>Roads</h2>
+      <iframe width="50%" height="32.5%" src="https://www.youtube.com/embed/aVwxzDHniEw?si=SFwRBxiAHsUZNi_b" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <iframe width="50%" height="32.5%" src="https://www.youtube.com/embed/jvPPXbo87ds?si=Y-iZPpcxUIfSEDUw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <p>A road has to start with a line, which in computer grathics tend to gome from splines, which I gained a fundimental understanding off through there 2 freyer holmer videos.</p>
+      <img src="Screenshot from 2024-04-29 16-24-39.png" width="70%">
+      <p>My framework has the equation to sample a point from a single bezier curve (from which a bezier spline is built) built-in, and it is common industry practice to convert all splines to bezier splines for standised rendering, so thats what I did.</p>
+      <p>I started with cattmull-romm splines as a way to create easilly controllerable organic smooth roads, I found a clear formula for conversion from a paper(left).</p>
+      <img src="Screenshot from 2024-04-29 19-36-36.png" width="33.3%">
+      <img src="Screenshot from 2024-04-29 19-48-51.png" width="33.3%">
+      <img src="Screenshot from 2024-04-29 19-53-22.png" width="33.3%">
+      <p>After a few errors and a bit of supporting trigonometry for the start led to smooth lines shown abouve created from a few user specified points.</p>
+      <img src="Screenshot from 2024-04-30 12-19-49.png" width="50%">
+      <img src="Screenshot from 2024-05-01 14-59-04.png" width="50%">
+      <p>I added a couple more geometric types of curve and a proper system too allow creating multiple roads. Though I didn't manage all the types of curves I wanted due to using pure trignometry rather than built-in quaternion functions and me not having done geometric maths in while. I feel I still can represent many types of road though.</p>
+      <img src="Screenshot from 2024-05-02 15-34-24.png" width="33.3%">
+      <img src="Screenshot from 2024-05-07 10-57-14.png" width="33.3%">
+      <img src="Screenshot from 2024-05-07 14-19-22.png" width="33.3%">
+      <p>I then have to sample at points allong it, record the distances along it, to then find out how where to sample it to get enely spaced points to sample allong it to get a mesh that can properly line up with the even terrain and building in the 2.7m grid.</p>
+      <p>I then offset those points using the normal off the line by an ajustable road width value, recorded this for buildings to generate off and built a mesh imbetween them with normal to make it shaded as though it had a slite curve off the sides for rain water.</p>
+      <p>At this stage it whent streight on the terrain and the demo will not include terrain beformation to it, therefor during the demo I raised it a few meteres off the terrain to avoid clipping on the sides</p>
+    </div>
+    <div id="Evaluation">
+      <h2>Evaluation</h2>
+      <img src="Evaluation.png" width="100%">
+      <p>I feel I demonstated the basics of road spline systems, hightmap terrain and generating meshes. I would have liked to de mesh reduction and deforming terrain to the roads and road intersections, as that whould have demonstrated inovative teqniques, however this wasn't needed for the demo so overall I feel I did what was necercy without any problems in the end.</p>
+      <p>Part of me thinks I could have used a more mature terrain library I found (<a href="https://github.com/ethereumdegen/bevy_mesh_terrain">bevy_mesh_terrain</a>) but I was able to demonstait more skills this way and gain a better understanding of the underlying technologies I'd have to work on to inovotive work in industry.</p>
+    </div>
+  </div>
+</body>

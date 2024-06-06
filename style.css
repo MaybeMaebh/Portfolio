@@ -20,6 +20,13 @@
 
 }
 
+code {
+    font-size:70%;
+}
+blockquote {
+    background-image:url('https://rivendell.neocities.org/backgrounds/stars4.gif');
+}
+
 a {
     color: var(--accent);
   }
@@ -147,6 +154,10 @@ p {
     color: var(--lt-contrast-color);
 }
 #container > div > img{
+    margin: 0;
+    float:left ;
+}
+#container > div > iframe{
     margin: 0;
     float:left ;
 }

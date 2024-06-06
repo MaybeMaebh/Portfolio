@@ -2,6 +2,7 @@
   <title>MaybeMaebh:FMP:Architecture</title>
   <link rel="icon" type="image/png" sizes="32x32" href="../../Favicon32x32.png"/>
   <link href="../../style.css" rel="stylesheet" type="text/css" media="all">
+  <meta charset="UTF-8">
 </head>
 
 <body>
@@ -22,6 +23,8 @@
     </div>
     <div>
       <h2>Recearch</h2>
+    </div>
+    <div>
       <h2>Large Buildings</h2>
       <p>A large start was my previose recearch into post-war prefab systems and modernist estates; as well as lightly into modern modular cladding systems:</p>
       <img src="Research Maebh Thomas CMP 2023 (1).svg" width="100%">
@@ -46,5 +49,268 @@
       <img src="SingleFamilyDetached.png" width="100%">
       <p>Newer suberban sprawl(post-war-ish) often instead usies detatched plot based housing where land is first devided into plots by area then a house is placed in with a fixed distance from the street (based on flawed car sadftey ideas), surrounded by lawn, with fence on all sides.</p>
     </div>
+
+    <div id="Planning">
+      <h2>Planning</h2>
+      <img src="Screenshot from 2024-06-05 14-52-52.png" width="100%">
+      <p>i decided what so far no game had represented is organic terriced developement and it is what I'm most familiar with and has first hand refrences for. For this I decided based on my recearcha 3D wave function collapse of standised pannels was the best option.</p>
+      <p>I decided a square 2.7m based on the DDR's WBS 70 system, a strong insporation for diverse buildings using symple standised pannels. (I use meters as my unit for everthing as this architectural standard and makes more sence than cm when working on the scale of cities)</p>
+      <img src="WBS70.jpg" width="70%">
+      <p>(left) an example of WBS 70</p>
+    </div>
+    <div>
+      <img src="Screenshot from 2024-05-08 23-55-04.png" width="33%">
+      <img src="Screenshot from 2024-05-09 00-38-57.png" width="33%">
+      <img src="Screenshot from 2024-05-09 00-45-28.png" width="33%">
+      <p>This next step involved many bugs from both falures of my mathicatic and  theoretical bassis and my implimatiation</p>
+      <img src="2DTS.jpeg" width="100%">
+      <p>Obviusly a fixed wave form collapse grid with fixed 2.7m pannels is not going to form the curvy organic buildings I'm trying to inovate, so i take that as a base and de-euclidionize it to keep each pannel close enough to 2.7m it doesn't look too far off (The pannel are designed to be happy to squash a bit, allowing far easier organic layout and sence of more variation, it may be worth comparing a mode with zero-tollerence for squashing for certian more planned architectrual styles, however for this demo I want focus on what is most inivate which is more organic styles).</p>
+      <img src="Screenshot from 2024-05-12 21-04-20.png" width="100%">
+      <p>It is then trivial to expand it to 3D, buildings do not tend to slope appart from with the road(and even then only somewhat but that is a future feture), so keeping flat even spaced layers works well, the terrain system is then able to instruct as to when building and back doors etc. should be built thurfer down or up.</p>
+    </div>
+
+    <div id="Implemtation">
+      <h2>Implemtation</h2>
+      <img src="pannel3d.gif" width="100%">
+      <p>From that base I designed pannels of many types of pannels with serveral variations and sevel style based on different reffences.</p>
+      <p>These pannels have to be carefully designed to propperly connect all other relevent pannels.</p>
+      <blockquote><code>refence screenshot, at about 40x40px can no longer see mesh details so use 64x64px textures to allow for interpolation.<br>
+        <br>
+        materials:<br>
+        00:0000:wall<br>
+        01:0001:wall_accent<br>
+        02:0010:sil<br>
+        03:0011:frame<br>
+        04:0100:wood<br>
+        05:0101:metal<br>
+        06:0110:door<br>
+        07:0111:window<br>
+        08:1000:motor<br>
+        09:1001:Pavement<br>
+        15:1111:Transparent<br>
+        4bits<br>
+        Red: 0:00 0.25:01 0.75:10 1:11<br>
+        GB -> remaing 2 bits<br>
+        <br>
+        styles:<br>
+        UK terrace<br>
+        WBS-70<br>
+        US Skyscrapers<br>
+        Modern Skyscrapers<br>
+        + other trad style to research<br>
+        <br>
+        ~50 pannels per style<br>
+        =~250 pannels<br>
+        ~100 vertexes each<br>
+        ~25000 vertexs<br>
+        at 32-bit per axis = 300KB<br>
+        at 16-bit per axis = 150KB<br>
+        <br>
+        Normals:<br>
+        5 angles<br>
+        3 axis<br>
+        15 possibilities<br>
+        4bits<br>
+        <br>
+        64&times;64&times;(4+4)&times;(50&times;5) = 8192000 bits = 1024KB uncompressed ~0.967MiB<br>
+        <br>
+        <br>
+        <br>
+        Intancing Memory:<br>
+        5 stories* 4 width per building * 40 building street * 20 streets in high LOD = 16000 High LOD pannels<br>
+        <br>
+        4 words for Position and scale (16 bytes at 32-bit words)<br>
+        Limmited pallets: 1 world for pallet(1 byte at 8-bit words), number of pallets*16*3 words in shader<br>
+        = 272Kb/320kb<br>
+        unlimited pallets: 16*3 words (48 bytes at 8-bit words, 192 bytes at 32-bit words)<br>
+        = 1024kb/3072kb<br>
+        //actually just 15 colours as transparent won't change.<br>
+        <br>
+        //fuck that instance mem is actualy parsed through every VERTEX, way tooo much, instead use pallets that passed streight to fragment during runtime.</code></blockquote>
+        <p>Crucially I also had to constrain the designes to my performance calulations so a whole city could be shown on affordable hardware. Though I think based on innitially getting some calculations wrong by 2^10 and a lack of experience with the strain of other parts of the grathics pipeline. however this did lead to me doing optimisations that help over the course of a whole game and give me more experience in working to constraints.</p>
+        <img src="ezgif-6-27bc8b8851.png" width="100%">
+        <p>Another optimisation not used by the demo of a single street but important to the performance viability of a whole city is a low LOD version of each pannel consisting of a flat plain textured with a colour refference to the pallet and normal map allowing a cheap approximation of how the light hits curved surfaces differently. these are generated from the top and front and then either or both would be used depending on the significance for a given pannel. The top version is important for top down views common in a city builder. (this si then combined into a single texture of the minimum size values which forms the dark texture above</p>
+        <p>I also needed encode which material in the pallet applies to which face for the flat shading which defines the style. In innefective hope to avoid duplicting vertexs for every face (about doubling the load on the vertex shader though in reality the rasterise is proberly the bottleneck for this art style in most modern grathics systems) and in a sucsessful slight drop memory use (colour encoded once per tri rather than 3 times). This served as a good learning experiences for doing custom solutions in the future but did not help this porject much.</p>
+        <p>The final processing step was to remove the unnecercery polys from using good topology for editing, triangulate it as that is how GPUs most efficiently render and duplicate vertexs to be uniqe to each tri across colour boundries so each poly has unique colour info.</p>
+        <p>All these steps where best done as part of the modeling process in blender necesitating I use another very differnt programing langue, python. I had learn blenders library it uses to allow progromatic interaction as well which I found allmost no video or guide info on but with the help of a fourm post, docs and trial and error found the plugins needed to uncover each of these steps to form the script bellow.</p>
+        <blockquote><code>
+          # exports each selected object into its own file<br>
+<br>
+import bpy<br>
+import math<br>
+import os<br>
+from PIL import Image<br>
+<br>
+# export to blend file location<br>
+basedir = os.path.dirname(bpy.data.filepath)<br>
+<br>
+if not basedir:<br>
+ raise Exception(&quot;Blend file is not saved&quot;)<br>
+<br>
+view_layer = bpy.context.view_layer<br>
+<br>
+obj_active = view_layer.objects.active<br>
+selection = bpy.context.selected_objects<br>
+<br>
+def combineNormalFlat(FlatDir,NormalDir,CombineDir):<br>
+ Flat = Image.open(FlatDir).load()<br>
+ <br>
+ Normal = Image.open(NormalDir).load()<br>
+ CombineI = Image.new(mode=&quot;L&quot;, size=(64,64))<br>
+ Combine = CombineI.load()<br>
+ for x in range(0,64):<br>
+ for y in range(0,64):<br>
+ <br>
+ FlatPix = [x/255 for x in Flat[x,y]]<br>
+ Mat = 0<br>
+ Mat += round(FlatPix[2])<br>
+ Mat += round(FlatPix[1])*2<br>
+ if FlatPix[0] < 0.1:<br>
+ Mat += 0<br>
+ elif FlatPix[0] < 0.35:<br>
+ Mat += 4<br>
+ elif FlatPix[0] < 0.9:<br>
+ Mat += 8<br>
+ else:<br>
+ Mat += 12<br>
+ <br>
+ #Alpha<br>
+ if FlatPix[3] <0.5:<br>
+ Mat = 1+2+4+8<br>
+ ##print(Mat * (2**4) + NormalComined)<br>
+ Combine[x,y] = Mat<br>
+ CombineI.save(CombineDir)<br>
+<br>
+bpy.ops.object.select_all(action='DESELECT')<br>
+<br>
+for obj in selection:<br>
+ bpy.data.objects[obj.name].hide_render = True<br>
+<br>
+<br>
+for obj in selection:<br>
+ if bpy.data.objects[obj.name].type == &quot;MESH&quot;:<br>
+ obj.select_set(True)<br>
+<br>
+ # some exporters only use the active object<br>
+ view_layer.objects.active = obj<br>
+<br>
+ name = bpy.path.clean_name(obj.name)<br>
+ fn = os.path.join(basedir, name)<br>
+ <br>
+ bpy.data.objects[obj.name].location = [0.0,0.0,0.0]<br>
+ bpy.data.objects[obj.name].hide_render = False<br>
+ <br>
+ #bpy.data.scenes[&quot;Library&quot;].(null) = '8'<br>
+ bpy.data.scenes[&quot;Library&quot;].render.engine = 'BLENDER_EEVEE'<br>
+ bpy.data.scenes[&quot;Library&quot;].camera = camera_obj = bpy.data.objects[&quot;CameraFront&quot;]<br>
+ bpy.context.scene.render.filepath = fn+&quot;.front.normal.png&quot;<br>
+ bpy.ops.render.render(write_still=True) <br>
+ bpy.data.scenes[&quot;Library&quot;].camera = camera_obj = bpy.data.objects[&quot;CameraTop&quot;]<br>
+ bpy.context.scene.render.filepath = fn+&quot;.top.normal.png&quot;<br>
+ bpy.ops.render.render(write_still=True) <br>
+ <br>
+ #bpy.data.scenes[&quot;Library&quot;].(null) = 'OFF'<br>
+ bpy.data.scenes[&quot;Library&quot;].render.engine = 'BLENDER_WORKBENCH'<br>
+ bpy.data.scenes[&quot;Library&quot;].camera = camera_obj = bpy.data.objects[&quot;CameraFront&quot;]<br>
+ bpy.context.scene.render.filepath = fn+&quot;.front.flat.png&quot;<br>
+ bpy.ops.render.render(write_still=True) <br>
+ bpy.data.scenes[&quot;Library&quot;].camera = camera_obj = bpy.data.objects[&quot;CameraTop&quot;]<br>
+ bpy.context.scene.render.filepath = fn+&quot;.top.flat.png&quot;<br>
+ bpy.ops.render.render(write_still=True) <br>
+ <br>
+ bpy.data.objects[obj.name].hide_render = True<br>
+ <br>
+ obj.select_set(False)<br>
+ <br>
+ print(&quot;written:&quot;, fn)<br>
+ <br>
+ combineNormalFlat(fn+&quot;.front.flat.png&quot;,fn+&quot;.front.normal.png&quot;,fn+&quot;.front.png&quot;)<br>
+ combineNormalFlat(fn+&quot;.top.flat.png&quot;,fn+&quot;.top.normal.png&quot;,fn+&quot;.top.png&quot;)<br>
+ <br>
+ <br>
+ #Mesh exporting<br>
+ bpy.data.objects[obj.name].modifiers.new(name='Decimate',type='DECIMATE')<br>
+ bpy.data.objects[obj.name].modifiers[&quot;Decimate&quot;].decimate_type = 'DISSOLVE'<br>
+ bpy.data.objects[obj.name].modifiers[&quot;Decimate&quot;].delimit = {'MATERIAL'}<br>
+ bpy.data.objects[obj.name].modifiers.new(name='Triangulate',type='TRIANGULATE')<br>
+ bpy.ops.object.modifier_apply(modifier=&quot;Decimate&quot;)<br>
+ bpy.ops.object.modifier_apply(modifier=&quot;Triangulate&quot;)<br>
+ <br>
+ bpy.data.objects[obj.name].select_set(True)<br>
+ bpy.ops.export_mesh.stl(filepath=fn+&quot;.stl&quot;, ascii=False,use_selection=True, axis_up='Y', axis_forward='Z')<br>
+ bpy.data.objects[obj.name].select_set(False)<br>
+ materialkey = open(fn+&quot;.mat.csv&quot;, &quot;w&quot;) #REMBER: will just add to old files not replace them!<br>
+ materialkeystr = &quot;&quot;<br>
+ for face in bpy.data.objects[obj.name].data.polygons:<br>
+ FlatPix =bpy.data.objects[obj.name].data.materials[face.material_index].diffuse_color<br>
+ Mat = 0<br>
+ Mat += round(FlatPix[2])<br>
+ Mat += round(FlatPix[1])*2<br>
+ if FlatPix[0] < 0.1:<br>
+ Mat += 0<br>
+ elif FlatPix[0] < 0.35:<br>
+ Mat += 4<br>
+ elif FlatPix[0] < 0.9:<br>
+ Mat += 8<br>
+ else:<br>
+ Mat += 12<br>
+ <br>
+ #Alpha<br>
+ if FlatPix[3] <0.5:<br>
+ Mat = 1+2+4+8<br>
+ materialkeystr += (str(Mat)+&quot;,&quot;)<br>
+ materialkey.write(materialkeystr[:-1])<br>
+ materialkey.close()<br>
+ <br>
+ <br>
+<br>
+<br>
+ else:<br>
+ print(&quot;Not mesh:&quot;+obj.name)<br>
+<br>
+<br>
+<br>
+view_layer.objects.active = obj_active<br>
+<br>
+for obj in selection:<br>
+ obj.select_set(True)
+        </code></blockquote>
+
+        <img src="Screenshot from 2024-06-05 16-51-50.png" width="15%">
+        <p>The last step was to define the atribuetes of each pannel for how I'd like them to go together as their stylitic prefrence makes an autimatic socket based system not work: e.g.</p>
+        <blockquote><code>(18, HIPannel{<br>
+          name: &quot;BumpyWindow&quot;.into(),<br>
+          style: Style::Bumpy,<br>
+          pannel_type: PannelType::Wall { door: false, garage_door: false },<br>
+          horis_style_match: Some(<br>
+          SameBuilding{<br>
+          same_building:vec![Style::Bumpy],<br>
+          not_same_building:vec![Style::Bumpy]<br>
+          }<br>
+          ), <br>
+          vertical_style_match: Some(vec![Style::FancyWindow]), <br>
+          ..default()<br>
+          }),<br>
+         <br>
+         <br>
+          (19, HIPannel{<br>
+          name: &quot;WallContinuation&quot;.into(),<br>
+          style: Style::UKTerrice,<br>
+          pannel_type: PannelType::InFrontOfWall { door: false, garage_door: false },<br>
+          horis_style_match: Some(<br>
+          SameBuilding{<br>
+          same_building:vec![Style::UKTerrice],<br>
+          not_same_building:vec![]<br>
+          }</code></blockquote>
+
+    </div>
+
+
+    <div id="Evaluation">
+      <h2>Evaluation</h2>
+      <img src="pannel3d.gif" width="100%">
+      <p>I feel like these models are the only part that If I was to take this project further I wouldn't remake. I was also able the demonstrate a complex proprietry asset pipeline which is very important in large industry projects. They portray several types of iconic british terriced development and complex pannel interactions (e.g. garden walls, window bulges). For this project though the asset pipeline could be slightly simplified I think by using vertex colouring with slight modification to use a pallet reference.</p>
+    </div>
+
   </div>
 </body>
